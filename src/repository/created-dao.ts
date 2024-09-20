@@ -18,6 +18,11 @@ export class CreatedDao {
   }
 
   public async createTable(tableName: string): Promise<void> {
-    await this.client.query(`CREATE TABLE ${tableName}`);
+    await this.client.query(`
+      CREATE TABLE ${tableName} (
+        id           serial  primary key,
+        airtable_id  text    not null
+      )
+    `);
   }
 }

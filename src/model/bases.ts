@@ -4,6 +4,6 @@ export interface Bases {
   tables?: Array<{
     id: string,
     name: string,
-    primaryFieldId: string,
+    primaryFieldId?: string,
   }>
 }

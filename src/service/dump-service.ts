@@ -14,8 +14,7 @@ export class DumpService {
   public async startDump(bases: Bases[]): Promise<void> {
     for (const base of bases) {
       if (!base.tables) return;
-      await this.mainDao.createDatabase(base.name, process.env.POSTGRES_USERNAME as string);
-      console.log(`Database ${base.name} created`)
+      await this.createDatabase(base.name);
       const createdDao = this.getCreatedDao(base.name);
       await createdDao.connect();
       for (const table of base.tables) {
@@ -23,6 +22,12 @@ export class DumpService {
       }
       await createdDao.end();
     }
+  }
+
+
+  private async createDatabase(baseName: string): Promise<void> {
+    await this.mainDao.createDatabase(baseName, this.mainDbInfo.user);
+    console.log(`Database ${baseName} created`)
   }
 
   private getCreatedDao(baseName: string): CreatedDao {
