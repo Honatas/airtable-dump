@@ -1,14 +1,21 @@
+import type { Bases } from "./model/bases";
 import { AirtableService } from "./service/airtable-service";
+import { DumpService } from "./service/dump-service";
 
 const service = new AirtableService();
-const bases = await service.getBases();
-console.log(bases);
+const airtableBases = await service.getBases();
 
-for (const base of bases.bases) {
-  const tables = await service.getTables(base.id);
-  
-  console.log(tables.tables[0].fields)
-  // for (const table of tables.tables) {
-  //   console.log(table.fields);
-  // }
+const bases: Bases[] = airtableBases.bases.map(base => (
+  {
+    id: base.id,
+    name: base.name.normalize().toLowerCase().replace(/[^a-z ]/g, "").replaceAll(' ', '_')
+  }
+));
+
+for (const base of bases) {
+  const airtableTables = await service.getTables(base.id);
+  base.tables = airtableTables.tables;
 }
+
+const dumpService = new DumpService();
+await dumpService.startDump(bases);

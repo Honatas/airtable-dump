@@ -1,5 +1,5 @@
-import type { AirtableBasesResponse } from "../response/airtable/airtable-bases-response";
-import type { AirtableTablesResponse } from "../response/airtable/airtable-tables-response";
+import type { AirtableBasesResponse } from "./response/airtable/airtable-bases-response";
+import type { AirtableTablesResponse } from "./response/airtable/airtable-tables-response";
 
 export class AirtableService {
 
@@ -9,11 +9,12 @@ export class AirtableService {
         "Authorization": `Bearer ${process.env.AIRTABLE_PAT}`
       }
     });
+    const body = await response.json();
     if (response.status != 200) {
       console.log(response.status);
-      console.log(response.json()); // TODO: improve error handling
+      console.log(body); // TODO: improve error handling
     }
-    return await response.json();
+    return body;
   }
 
   public async getTables(baseId: string): Promise<AirtableTablesResponse> {
@@ -22,10 +23,11 @@ export class AirtableService {
         "Authorization": `Bearer ${process.env.AIRTABLE_PAT}`
       }
     });
+    const body = await response.json();
     if (response.status != 200) {
       console.log(response.status);
-      console.log(response.json()); // TODO: improve error handling
+      console.log(body); // TODO: improve error handling
     }
-    return await response.json();
+    return body;
   }
 }
