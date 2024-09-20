@@ -1,17 +1,23 @@
 import { Client } from "pg";
 import type { DatabaseConnectionInfo } from "../model/database-connection-info";
 
-export class MainDao {
-
+export class CreatedDao {
+ 
   private client;
 
   constructor(dbInfo: DatabaseConnectionInfo) {
     this.client = new Client(dbInfo);
   }
 
-  public async createDatabase(databaseName: string, owner: string): Promise<void> {
+  public async connect(): Promise<void> {
     await this.client.connect();
-    await this.client.query(`CREATE DATABASE ${databaseName} WITH OWNER ${owner}`);
+  }
+
+  public async end(): Promise<void> {
     await this.client.end();
+  }
+
+  public async createTable(tableName: string): Promise<void> {
+    await this.client.query(`CREATE TABLE ${tableName}`);
   }
 }
