@@ -1,9 +1,7 @@
+import type { AirtableElement } from "./airtable-element";
 import type { Field } from "./field";
 
-export interface Table {
-  id: string,
-  name: string,
-  normalizedName: string;
+export interface Table extends AirtableElement {
   primaryFieldId?: string,
   fields: Array<Field>
 }

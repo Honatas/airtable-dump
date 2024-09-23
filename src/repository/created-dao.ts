@@ -20,7 +20,7 @@ export class CreatedDao {
 
   public async createTable(tableName: string): Promise<void> {
     await this.client.query(`
-      CREATE TABLE ${tableName} (
+      CREATE TABLE "${tableName}" (
         id           serial  primary key,
         airtable_id  text    not null
       )
@@ -28,7 +28,7 @@ export class CreatedDao {
   }
 
   public async addField(tableName: string, field: Field): Promise<void> {
-    await this.client.query(`ALTER TABLE ${tableName} ADD ${field.normalizedName} ${field.postgresType} NULL`);
+    await this.client.query(`ALTER TABLE "${tableName}" ADD "${field.normalizedName}" ${field.postgresType} NULL`);
     // TODO: check why below code is not working
     // if (field.description) {
     //   await this.client.query(`COMMENT ON COLUMN ${tableName}.${field.normalizedName} IS ${field.description}`);

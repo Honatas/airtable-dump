@@ -45,14 +45,8 @@ export class DumpService {
 
   private async createField(createdDao: CreatedDao, tableName: string, field: Field): Promise<void> {
     if (field.postgresType == undefined) return;
-    try {
-      await createdDao.addField(tableName, field);
-      console.log(`Field ${field.name} created`);
-    } catch (err) {
-      if ((err as DatabaseError).code = '42701') { // column with name already exists
-        await this.createField(createdDao, tableName, {...field, normalizedName: field.normalizedName + '_1'})
-      }
-    }
+    await createdDao.addField(tableName, field);
+    console.log(`Field ${field.name} created`);
   }
 
   private async loadData(base: Base, createdDao: CreatedDao): Promise<void> {
