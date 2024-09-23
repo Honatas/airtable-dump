@@ -29,4 +29,14 @@ export class CreatedDao {
   public async addField(tableName: string, fieldName: string, fieldType: string): Promise<void> {
     await this.client.query(`ALTER TABLE ${tableName} ADD ${fieldName} ${fieldType} NULL`);
   }
+
+  public async insert(tableName: string, recordAirtableId: string, fieldNames: Array<any>, fieldValues: Array<any>): Promise<void> {
+    let placeholders = '';
+    for (let i=1; i<=fieldValues.length; i++) {
+      placeholders += '$' + i + ',';
+    }
+    placeholders = placeholders.substring(0, placeholders.length - 1);
+    let sql = `INSERT INTO ${tableName}(airtable_id, ${fieldNames}) VALUES('${recordAirtableId}',${placeholders})`;
+    await this.client.query(sql, fieldValues);
+  }
 }

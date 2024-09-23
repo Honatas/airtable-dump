@@ -8,23 +8,29 @@ export class BatchRunner {
 
   public async run(mainDatabaseConnection: DatabaseConnectionInfo): Promise<void> {
     const service = new AirtableService();
-    const airtableBases = await service.getBases();
+    const airtableBasesResponse = await service.getBases();
 
 
-    let bases: Base[] = airtableBases.bases.map(base => ({
+    let bases: Base[] = airtableBasesResponse.bases.map(base => ({
       id: base.id,
-      name: Utils.normalizeName(base.name)
+      name: base.name,
+      normalizedName: Utils.normalizeName(base.name),
+      created: false,
     }));
 
     for (const base of bases) {
-      const airtableTables = await service.getTables(base.id);
-      base.tables = airtableTables.tables.map(table => ({
+      const airtableTablesResponse = await service.getTables(base.id);
+      base.tables = airtableTablesResponse.tables.map(table => ({
         id: table.id,
-        name: Utils.normalizeName(table.name),
+        name: table.name,
+        normalizedName: Utils.normalizeName(table.name),
+        created: false,
         // primaryFieldId: table.primaryField,
         fields: table.fields.map(field => ({
           id: field.id,
-          name: Utils.normalizeName(field.name),
+          name: field.name,
+          normalizedName: Utils.normalizeName(field.name),
+          created: false,
           type: field.type
         })),
       }));
