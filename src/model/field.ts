@@ -1,7 +1,8 @@
 export interface Field {
-  id: string,
-  name: string,
+  id: string;
+  name: string;
   normalizedName: string;
-  created: boolean;
-  type: string,
+  type: string;
+  postgresType: string | undefined;
+  description: string;
 }

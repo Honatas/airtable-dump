@@ -1,5 +1,6 @@
 import { Client } from "pg";
 import type { DatabaseConnectionInfo } from "../model/database-connection-info";
+import type { Field } from "../model/field";
 
 export class CreatedDao {
  
@@ -26,8 +27,12 @@ export class CreatedDao {
     `);
   }
 
-  public async addField(tableName: string, fieldName: string, fieldType: string): Promise<void> {
-    await this.client.query(`ALTER TABLE ${tableName} ADD ${fieldName} ${fieldType} NULL`);
+  public async addField(tableName: string, field: Field): Promise<void> {
+    await this.client.query(`ALTER TABLE ${tableName} ADD ${field.normalizedName} ${field.postgresType} NULL`);
+    // TODO: check why below code is not working
+    // if (field.description) {
+    //   await this.client.query(`COMMENT ON COLUMN ${tableName}.${field.normalizedName} IS ${field.description}`);
+    // }
   }
 
   public async insert(tableName: string, recordAirtableId: string, fieldNames: Array<any>, fieldValues: Array<any>): Promise<void> {

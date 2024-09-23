@@ -30,13 +30,21 @@ export class BatchRunner {
           id: field.id,
           name: field.name,
           normalizedName: Utils.normalizeName(field.name),
-          created: false,
-          type: field.type
+          type: field.type,
+          postgresType: this.getPostgresType(field.type),
+          description: field.description,
         })),
       }));
     }
 
     const dumpService = new DumpService(mainDatabaseConnection);
     await dumpService.startDump(bases);
+  }
+
+  private getPostgresType(type: string): string | undefined {
+    if (type === 'singleLineText' || type === 'richText' || type === 'singleSelect') {
+      return 'TEXT';
+    }
+    return undefined;
   }
 }

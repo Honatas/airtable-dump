@@ -16,19 +16,14 @@ export class DumpService {
 
   public async startDump(bases: Base[]): Promise<void> {
     for (const base of bases) {
-      await this.createDatabase(base);
+      await this.mainDao.createDatabase(base.normalizedName, this.mainDbInfo.user);
+      console.log(`Database ${base.name} created`)
       const createdDao = this.getCreatedDao(base);
       await createdDao.connect();
       await this.createTables(base, createdDao);
       await this.loadData(base, createdDao);
       await createdDao.end();
     }
-  }
-
-  private async createDatabase(base: Base): Promise<void> {
-    await this.mainDao.createDatabase(base.normalizedName, this.mainDbInfo.user);
-    base.created = true;
-    console.log(`Database ${base.name} created`)
   }
 
   private getCreatedDao(base: Base): CreatedDao {
@@ -41,24 +36,18 @@ export class DumpService {
     if (!base.tables) return;
     for (const table of base.tables) {
       await createdDao.createTable(table.normalizedName);
-      table.created = true;
       console.log(`Table ${table.name} created`)
       for (const field of table.fields) {
         await this.createField(createdDao, table.normalizedName, field);
-        // console.log(`Field ${field.name} created`)
       }
     }
   }
 
   private async createField(createdDao: CreatedDao, tableName: string, field: Field): Promise<void> {
-    let postgresType;
-    if (field.type === 'singleLineText') {
-      postgresType = 'TEXT';
-    }
-    if (!postgresType) return;
+    if (field.postgresType == undefined) return;
     try {
-      await createdDao.addField(tableName, field.normalizedName, postgresType);
-      field.created = true;
+      await createdDao.addField(tableName, field);
+      console.log(`Field ${field.name} created`);
     } catch (err) {
       if ((err as DatabaseError).code = '42701') { // column with name already exists
         await this.createField(createdDao, tableName, {...field, normalizedName: field.normalizedName + '_1'})
@@ -67,9 +56,8 @@ export class DumpService {
   }
 
   private async loadData(base: Base, createdDao: CreatedDao): Promise<void> {
-    if (!base.created || !base.tables) return;
+    if (!base.tables) return;
     for (const table of base.tables) {
-      if (!table.created) continue;
       console.log(`Querying Airtable for ${table.name} data`);
       const tableData = await new AirtableService().getTableData(base.id, table.id);
       // TODO: fetch by offset
@@ -78,7 +66,7 @@ export class DumpService {
         let fieldNames = [];
         let fieldValues = [];
         for (const field of table.fields) {
-          if (!field.created) continue;
+          if (!field.postgresType) continue;
           fieldNames.push(field.normalizedName);
           fieldValues.push(record.fields[field.name]);
         }
