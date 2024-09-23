@@ -1,5 +1,7 @@
-import type { Bases } from "../model/bases";
+import { DatabaseError } from "pg";
+import type { Base } from "../model/base";
 import type { DatabaseConnectionInfo } from "../model/database-connection-info";
+import type { Field } from "../model/field";
 import { CreatedDao } from "../repository/created-dao";
 import { MainDao } from "../repository/main-dao";
 
@@ -11,7 +13,7 @@ export class DumpService {
     this.mainDao = new MainDao(mainDbInfo);
   }
 
-  public async startDump(bases: Bases[]): Promise<void> {
+  public async startDump(bases: Base[]): Promise<void> {
     for (const base of bases) {
       if (!base.tables) return;
       await this.createDatabase(base.name);
@@ -19,6 +21,11 @@ export class DumpService {
       await createdDao.connect();
       for (const table of base.tables) {
         await createdDao.createTable(table.name);
+        console.log(`Table ${table.name} created`)
+        for (const field of table.fields) {
+          await this.createField(createdDao, table.name, field);
+          console.log(`Field ${field.name} created`)
+        }
       }
       await createdDao.end();
     }
@@ -34,5 +41,20 @@ export class DumpService {
     let createdDbInfo = { ...this.mainDbInfo };
     createdDbInfo.database = baseName;
     return new CreatedDao(createdDbInfo);
+  }
+
+  private async createField(createdDao: CreatedDao, tableName: string, field: Field): Promise<void> {
+    let postgresType;
+    if (field.type === 'singleLineText') {
+      postgresType = 'TEXT';
+    }
+    if (!postgresType) return;
+    try {
+      await createdDao.addField(tableName, field.name, postgresType);
+    } catch (err) {
+      if ((err as DatabaseError).code = '42701') {
+        await this.createField(createdDao, tableName, {...field, name: field.name + '_1'})
+      }
+    }
   }
 }

@@ -1,4 +1,4 @@
-import type { Bases } from "./model/bases";
+import type { Base } from "./model/base";
 import type { DatabaseConnectionInfo } from "./model/database-connection-info";
 import { AirtableService } from "./service/airtable-service";
 import { DumpService } from "./service/dump-service";
@@ -11,7 +11,7 @@ export class BatchRunner {
     const airtableBases = await service.getBases();
 
 
-    let bases: Bases[] = airtableBases.bases.map(base => ({
+    let bases: Base[] = airtableBases.bases.map(base => ({
       id: base.id,
       name: Utils.normalizeName(base.name)
     }));
@@ -22,6 +22,11 @@ export class BatchRunner {
         id: table.id,
         name: Utils.normalizeName(table.name),
         // primaryFieldId: table.primaryField,
+        fields: table.fields.map(field => ({
+          id: field.id,
+          name: Utils.normalizeName(field.name),
+          type: field.type
+        })),
       }));
     }
 

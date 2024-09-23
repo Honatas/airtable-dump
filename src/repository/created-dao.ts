@@ -25,4 +25,8 @@ export class CreatedDao {
       )
     `);
   }
+
+  public async addField(tableName: string, fieldName: string, fieldType: string): Promise<void> {
+    await this.client.query(`ALTER TABLE ${tableName} ADD ${fieldName} ${fieldType} NULL`);
+  }
 }
