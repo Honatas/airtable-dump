@@ -15,22 +15,13 @@ export class DumpService {
 
   public async startDump(bases: Base[]): Promise<void> {
     for (const base of bases) {
-      if (!base.tables) return;
       await this.createDatabase(base.name);
       const createdDao = this.getCreatedDao(base.name);
       await createdDao.connect();
-      for (const table of base.tables) {
-        await createdDao.createTable(table.name);
-        console.log(`Table ${table.name} created`)
-        for (const field of table.fields) {
-          await this.createField(createdDao, table.name, field);
-          console.log(`Field ${field.name} created`)
-        }
-      }
+      await this.createTables(base, createdDao);
       await createdDao.end();
     }
   }
-
 
   private async createDatabase(baseName: string): Promise<void> {
     await this.mainDao.createDatabase(baseName, this.mainDbInfo.user);
@@ -43,6 +34,18 @@ export class DumpService {
     return new CreatedDao(createdDbInfo);
   }
 
+  private async createTables(base: Base, createdDao: CreatedDao) {
+    if (!base.tables) return;
+    for (const table of base.tables) {
+      await createdDao.createTable(table.name);
+      console.log(`Table ${table.name} created`)
+      for (const field of table.fields) {
+        await this.createField(createdDao, table.name, field);
+        console.log(`Field ${field.name} created`)
+      }
+    }
+  }
+
   private async createField(createdDao: CreatedDao, tableName: string, field: Field): Promise<void> {
     let postgresType;
     if (field.type === 'singleLineText') {
@@ -52,7 +55,7 @@ export class DumpService {
     try {
       await createdDao.addField(tableName, field.name, postgresType);
     } catch (err) {
-      if ((err as DatabaseError).code = '42701') {
+      if ((err as DatabaseError).code = '42701') { // column with name already exists
         await this.createField(createdDao, tableName, {...field, name: field.name + '_1'})
       }
     }
